@@ -1,0 +1,174 @@
+<p id="notice"><%= notice %></p>
+<h3 align="center">All Tweets</h3>
+
+<%= form_for :search, url: search_user_home_index_path, remote: true, html: {class: "search-form"}, method: 'GET' do %>
+	<input type="text" placeholder="Search user by email address or name ..." name="search">
+	<button type="submit" id="search-btn"><i class="fa fa-search"></i></button>
+<% end %>
+<br>
+
+<div id="user-list"></div>
+
+<div id="tweets_list">
+	<table class="table table-bordered">
+	  <thead>
+	    <tr>
+	      <th colspan="3">Tweet</th>	      
+	      <th colspan="3">Actions</th>
+	    </tr>
+	  </thead>
+	  <tbody>
+	    <% @tweets.each do |tweet| %>
+	      <tr>
+	        <td colspan="3">
+	        	<div class="row">
+						  <div class="col-md-10 col-md-offset-1">
+	        		Tweeted by: <a href="/profiles/<%=tweet.user.profile.id%>">@<%= tweet.user.profile.first_name%></a>
+	        		<br><br>
+						    <div class="row">
+						      <div class="col-md-4">
+						        <%= image_tag(tweet.attachment_url, size: "80x65", class: "img-rounded") unless tweet.attachment_url.nil? %> 
+						      </div>
+						      <div class="col-md-6">
+						        <%= link_to "#{raw tweet.message}", tweet_path(tweet) %>
+						      </div>
+						    </div>
+						  </div>
+						</div>
+	        </td>        
+	        <td id="like-id_<%= tweet.id%>">
+	        	<% if is_liked(tweet.id) %>
+		          <div class= "t-pointer" onclick="likeFunction(<%= tweet.id %>)">Like</div>
+		        <% else %>
+		          <div class= "t-pointer" onclick="dislikeFunction(<%= tweet.id %>)">Dislike</div>
+		        <% end %>
+	        </td>
+	        <td onclick="addTweetId(<%= tweet.id %>)"><a data-toggle="modal" data-target="#myModal">Comment</a></td>
+	        <td>Re-tweet</td>
+	      </tr>
+	    <% end %>
+	  </tbody>
+	</table>
+</div>
+<br>
+
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" role="dialog">
+  <div class="modal-dialog modal-md">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Comment</h4>
+      </div>
+      <div class="modal-body">
+        <%= form_for :comment, url: create_comment_comments_path, remote: true, html: {class: "comment-form"}, local: true do |form| %>
+				  <div class="form-group">
+				    <label for="message">Message Text:</label>				   
+				    <%= form.text_area :message, id: :comment_message, class: "form-control", required: true %>
+				  </div>
+
+				  <div class="form-group">
+				    <label for="attachment">Attachment:</label>
+				    <%= form.file_field :attachment, id: :comment_attachment %>
+				  </div>
+
+				  <div class="field">    
+				    <%= form.hidden_field :user_id, value: current_user.id, id: :comment_user_id %>
+				    <%= form.hidden_field :tweet_id, id: :comment_tweet_id %>				    
+				  </div>
+				  <div class="actions">
+				    <%= form.submit class: "btn btn-default"%>
+				  </div>
+				<% end %>
+      </div>
+      <!-- <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div> -->
+    </div>
+  </div>
+</div>
+
+
+<script type="text/javascript">
+	// $("input[name=search]").on("keyup", function(){
+	// 	if ($(this).val()){
+	// 		$("button[type=submit]").removeClass("disabled").addClass("active")
+	// 	}
+	// 	else{			
+	// 		$("button[type=submit]").removeClass("active").addClass("disabled")
+	// 	}
+	// })
+	$("#search-btn").click(function(){
+		var search_data = $("input[name=search]").val();
+		if (search_data){
+			return true;
+		}else{
+			alert("Please input email address.")
+			return false;
+		}
+	});
+</script>
+
+<script type="text/javascript">
+  function likeFunction(tweet) {
+    $.ajax({
+      url: "<%= like_likes_path %>",
+      data: {"tweet_id": tweet},
+      success: function(data){
+        $("#like-id_" + tweet).html('<div class= "t-pointer" onclick="dislikeFunction(' + tweet + ')">Dislike</div>')
+      }
+    });
+  }
+
+  function dislikeFunction(tweet) {
+    $.ajax({
+      url: "<%= dislike_likes_path%>",
+      data: {"tweet_id": tweet},
+      success: function(data){
+        $("#like-id_" + tweet).html('<div class= "t-pointer" onclick="likeFunction(' + tweet + ')">Like</div>')
+      }
+    });
+  }
+
+</script>
+
+<style>
+	body {
+		font-family: Arial;
+	}
+
+	* {
+		box-sizing: border-box;
+	}
+
+	form.search-form input[type=text] {
+		padding: 10px;
+		font-size: 17px;
+		border: none;
+		float: left;
+		width: 80%;
+		background: #f1f1f1;
+	}
+
+	form.search-form button {
+		float: left;
+		width: 20%;
+		padding: 10px;
+		background: #2196F3;
+		color: white;
+		font-size: 17px;
+		border: none;
+		cursor: pointer;
+	}
+
+	form.search-form button:hover {
+		background: #0b7dda;
+	}
+
+	form.search-form::after {
+		content: "";
+		clear: both;
+		display: table;
+	}
+</style>

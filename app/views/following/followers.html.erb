@@ -1,0 +1,14 @@
+<table class="table table-striped">    
+	<tbody>
+		<% if @total_followers.present? %> 
+			<% @total_followers.each do |user|%>
+				<tr>
+					<td><%= link_to "#{user.email}", profile_path(id: user.profile, tag: 'Other') %></td>
+					<td><%= user.profile.first_name.titleize if user.profile %></td>        
+				</tr>
+			<% end %>
+		<% else %>
+			<p>No Followers</p>
+		<% end %> 
+	</tbody>
+</table>
